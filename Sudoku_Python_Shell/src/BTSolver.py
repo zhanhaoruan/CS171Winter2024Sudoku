@@ -48,39 +48,27 @@ class BTSolver:
                 The bool is true if assignment is consistent, false otherwise.
     """
     def forwardChecking ( self ):
-        assignments = {}  # Dictionary to track assignments made during forward checking
-        consistent = True  # Flag to indicate consistency of the assignment
-
         # Identify the variable that was just assigned
         current_var = self.network.getAssignedVariable()
-        if current_var:
-            assignments[current_var] = current_var.getAssignment()
 
         # Iterate over all constraints that include current_var
         for constraint in self.network.getConstraintsInvolvingVariable(current_var):
             # For each constraint, get the unassigned variables
             for var in constraint.getUnassignedVariables():
-                removed_values = []  # Track removed values for this variable
                 # Iterate over each value in the domain of the unassigned variable
                 for value in var.getDomain().getValues():
                     # If the value is not consistent with the current assignment under the constraint
                     if not constraint.isValueConsistentWithAssignment(value):
-                        # Remove the value from the domain of the unassigned variable and track the removal
+                        # Remove the value from the domain of the unassigned variable
                         self.trail.push(var)
                         var.getDomain().remove(value)
-                        removed_values.append(value)
-
-                # Check if any value was removed and update the assignments dictionary
-                if removed_values:
-                    assignments[var] = removed_values
-
-                # After checking all values, if the domain of the variable becomes empty, update consistent flag and return
+                        
+                # After checking all values, if the domain of the variable becomes empty, return False
                 if var.getDomain().isEmpty():
-                    consistent = False
-                    return assignments, consistent
-
+                    return False
+                    
         # If no domain becomes empty, forward checking succeeded
-        return assignments, consistent
+        return ({}, True)
 
     # =================================================================
 	# Arc Consistency
