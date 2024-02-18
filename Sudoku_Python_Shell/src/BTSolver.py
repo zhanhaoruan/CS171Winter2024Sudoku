@@ -48,26 +48,27 @@ class BTSolver:
                 The bool is true if assignment is consistent, false otherwise.
     """
     def forwardChecking ( self ):
-        # Identify the variable that was just assigned
-        current_var = self.network.getAssignedVariable()
 
-        # Iterate over all constraints that include current_var
-        for constraint in self.network.getConstraintsInvolvingVariable(current_var):
-            # For each constraint, get the unassigned variables
-            for var in constraint.getUnassignedVariables():
-                # Iterate over each value in the domain of the unassigned variable
-                for value in var.getDomain().getValues():
-                    # If the value is not consistent with the current assignment under the constraint
-                    if not constraint.isValueConsistentWithAssignment(value):
-                        # Remove the value from the domain of the unassigned variable
+        #get the modified constraints
+        for constraint in self.network.getModifiedConstraints():
+
+            #get the already assigned variables first
+            assignedvars = []
+            for var in constraint.vars:
+                if var.isAssigned():
+                    assignedvars.append(var)
+            
+            #go for each assigned varaible and see and propagate all the related constraints.
+            for assignedvar in assignedvars:
+                value = assignedvar.getValues()[0]
+                for var in self.network.getNeighborsOfVariable(assignedvar):
+                    if var.getDomain().contains(value) and not var.isAssigned():
                         self.trail.push(var)
-                        var.getDomain().remove(value)
-                        
-                # After checking all values, if the domain of the variable becomes empty, return False
-                if var.getDomain().isEmpty():
-                    return False
+                        var.removeValueFromDomain(value)
+                    if var.getDomain().isEmpty():
+                        return ({}, False)
                     
-        # If no domain becomes empty, forward checking succeeded
+
         return ({}, True)
 
     # =================================================================
