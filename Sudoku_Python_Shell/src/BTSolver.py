@@ -53,20 +53,17 @@ class BTSolver:
         for constraint in self.network.getModifiedConstraints():
 
             #get the already assigned variables first
-            assignedvars = []
             for var in constraint.vars:
                 if var.isAssigned():
-                    assignedvars.append(var)
-            
-            #go for each assigned varaible and see and propagate all the related constraints.
-            for assignedvar in assignedvars:
-                value = assignedvar.getValues()[0]
-                for var in self.network.getNeighborsOfVariable(assignedvar):
-                    if var.getDomain().contains(value) and not var.isAssigned():
-                        self.trail.push(var)
-                        var.removeValueFromDomain(value)
-                    if var.getDomain().isEmpty():
-                        return ({}, False)
+                    value = var.getValues()[0]
+                    for neighborvar in self.network.getNeighborsOfVariable(var):
+                        if neighborvar.getDomain().contains(value):
+                            if neighborvar.isAssigned():
+                                return ({}, False)
+                            self.trail.push(neighborvar)
+                            neighborvar.removeValueFromDomain(value)
+                        if neighborvar.getDomain().isEmpty():
+                            return ({}, False)
                     
 
         return ({}, True)
