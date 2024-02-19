@@ -47,26 +47,35 @@ class BTSolver:
         Return: a tuple of a dictionary and a bool. The dictionary contains all MODIFIED variables, mapped to their MODIFIED domain.
                 The bool is true if assignment is consistent, false otherwise.
     """
-    def forwardChecking ( self ):
+    def forwardChecking ( self , v):
+        if not v:
+            #get the modified constraints
+            for constraint in self.network.getModifiedConstraints():
 
-        #get the modified constraints
-        for constraint in self.network.getModifiedConstraints():
-
-            #get the already assigned variables first
-            for var in constraint.vars:
-                if var.isAssigned():
-                    value = var.getValues()[0]
-                    for neighborvar in self.network.getNeighborsOfVariable(var):
-                        if neighborvar.getDomain().contains(value):
-                            if neighborvar.isAssigned():
+                #get the already assigned variables first
+                for var in constraint.vars:
+                    if var.isAssigned():
+                        value = var.getValues()[0]
+                        for neighborvar in self.network.getNeighborsOfVariable(var):
+                            if neighborvar.getDomain().contains(value):
+                                if neighborvar.isAssigned():
+                                    return ({}, False)
+                                self.trail.push(neighborvar)
+                                neighborvar.removeValueFromDomain(value)
+                            if neighborvar.getDomain().isEmpty():
                                 return ({}, False)
-                            self.trail.push(neighborvar)
-                            neighborvar.removeValueFromDomain(value)
-                        if neighborvar.getDomain().isEmpty():
-                            return ({}, False)
-                    
+                        
 
-        return ({}, True)
+            return ({}, True)
+        else:
+            value = v.getValues()[0]
+            for neighborvar in self.network.getNeighborsOfVariable(v):
+                if neighborvar.getDomain().contains(value) and not neighborvar.isAssigned():
+                    self.trail.push(neighborvar)
+                    neighborvar.removeValueFromDomain(value)
+                    if neighborvar.getDomain().isEmpty():
+                        return ({}, False)
+            return ({}, True)
 
     # =================================================================
 	# Arc Consistency
@@ -219,7 +228,7 @@ class BTSolver:
             v.assignValue( i )
 
             # Propagate constraints, check consistency, recur
-            if self.checkConsistency():
+            if self.checkConsistency(v):
                 elapsed_time = time.time() - start_time 
                 new_start_time = time_left - elapsed_time
                 if self.solve(time_left=new_start_time) == -1:
@@ -234,9 +243,9 @@ class BTSolver:
         
         return 0
 
-    def checkConsistency ( self ):
+    def checkConsistency ( self , v=None):
         if self.cChecks == "forwardChecking":
-            return self.forwardChecking()[1]
+            return self.forwardChecking(v)[1]
 
         if self.cChecks == "norvigCheck":
             return self.norvigCheck()[1]
