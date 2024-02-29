@@ -209,9 +209,8 @@ class BTSolver:
                 if neighbor.getDomain().contains(value):
                     check_dict[value] += 1
 
-        sorted_dict = dict(sorted(check_dict.items(), key = lambda item:item[1]))
-
-        return list(sorted_dict.keys())
+        sorted_values = sorted(check_dict.items(), key=lambda item: item[1])
+        return [item[0] for item in sorted_values]
 
     """
          Optional TODO: Implement your own advanced Value Heuristic

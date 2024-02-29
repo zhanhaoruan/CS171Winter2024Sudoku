@@ -73,13 +73,25 @@ def main ( ):
         listOfBoards = None
 
         try:
-            listOfBoards = os.listdir ( file )
+            listOfBoards = sorted(os.listdir ( file ))
         except:
             print ( "[ERROR] Failed to open directory." )
             return
 
         numSolutions = 0
+        
+        last_num_undo = 0
+
+        undo_dic = {
+            "easy_board" : [],
+            "intermediate_board" : [],
+            "hard_board" : [],
+            "z_expert_board" : [],
+        }
+
         for f in listOfBoards:
+            if "z_expert_board" in str(f):
+                continue
             print ( "Running board: " + str(f) )
             sudokudata = SudokuBoard.SudokuBoard( filepath=os.path.join( file, f ) )
 
@@ -89,11 +101,27 @@ def main ( ):
             solver.solve()
 
             if solver.hassolution:
-                numSolutions += 1;
+                numSolutions += 1
+            
+            num_undo = trail.getUndoCount() - last_num_undo
+            last_num_undo = trail.getUndoCount()
+            print ( "Backtracks: "  + str(num_undo) )
+            if "easy_board" in str(f):
+                undo_dic["easy_board"].append(num_undo)
+            elif "intermediate_board" in str(f):
+                undo_dic["intermediate_board"].append(num_undo)
+            elif "hard_board" in str(f):
+                undo_dic["hard_board"].append(num_undo)
+            elif "z_expert_board" in str(f):
+                undo_dic["z_expert_board"].append(num_undo)
+        
+        for key, value in undo_dic.items():
+            print(key + " : ")
+            print(value)
 
-        print ( "Solutions Found: " + str(numSolutions) )
-        print ( "Trail Pushes: " + str(trail.getPushCount()) )
-        print ( "Backtracks: "  + str(trail.getUndoCount()) )
+        # print ( "Solutions Found: " + str(numSolutions) )
+        # print ( "Trail Pushes: " + str(trail.getPushCount()) )
+        # print ( "Backtracks: "  + str(trail.getUndoCount()) )
 
         return
 
