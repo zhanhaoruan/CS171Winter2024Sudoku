@@ -200,7 +200,18 @@ class BTSolver:
                 The LCV is first and the MCV is last
     """
     def getValuesLCVOrder ( self, v ):
-        return None
+        check_dict = {}
+        for value in v.getValues():
+            check_dict[value] = 1
+
+        for neighbor in self.network.getNeighborsOfVariable(v):
+            for value in v.getValues():
+                if neighbor.getDomain().contains(value):
+                    check_dict[value] += 1
+
+        sorted_dict = dict(sorted(check_dict.items(), key = lambda item:item[1]))
+
+        return list(sorted_dict.keys())
 
     """
          Optional TODO: Implement your own advanced Value Heuristic
