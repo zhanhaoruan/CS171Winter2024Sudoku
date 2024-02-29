@@ -22,6 +22,8 @@ class BTSolver:
         self.varHeuristics = var_sh
         self.valHeuristics = val_sh
         self.cChecks = cc
+        self.MRVtracks = []
+        self.MRVinit = False
 
     # ==================================================================
     # Consistency Checks
@@ -143,8 +145,21 @@ class BTSolver:
 
         Return: The unassigned variable with the smallest domain
     """
+
+    def MRV_comp_sort(v):
+        return (v.isAssigned(), v.domain.size())
+
     def getMRV ( self ):
-        return None
+        if not self.MRVinit:
+            for v in self.network.variables:
+                if not v.isAssigned():
+                    self.MRVtracks.append(v)
+            self.MRVinit = True
+        
+        self.MRVtracks.sort(key=lambda variable: (variable.isAssigned(), variable.domain.size()))
+        if self.MRVtracks[0].isAssigned():
+            return None
+        return self.MRVtracks[0]
 
     """
         Part 2 TODO: Implement the Minimum Remaining Value Heuristic
