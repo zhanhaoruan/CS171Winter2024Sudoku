@@ -170,7 +170,30 @@ class BTSolver:
                 If there is only one variable, return the list of size 1 containing that variable.
     """
     def MRVwithTieBreaker ( self ):
-        return None
+        if not self.MRVinit:
+            for v in self.network.variables:
+                if not v.isAssigned():
+                    self.MRVtracks.append(v)
+            self.MRVinit = True
+        
+        self.MRVtracks.sort(key=lambda variable: (variable.isAssigned(), variable.domain.size()))
+        if self.MRVtracks[0].isAssigned():
+            return None
+        domainSize = self.MRVtracks[0].size()
+        constraintSize = len(self.network.getConstraintsContainingVariable(self.MRVtracks[0]))
+        mostDegree = []
+        for v in self.MRVtracks:
+            if v.size() > domainSize:
+                break
+            currentConstraintsSize = len(self.network.getConstraintsContainingVariable(v))
+            if currentConstraintsSize == constraintSize:
+                mostDegree.append(v)
+                continue
+            if currentConstraintsSize > constraintSize:
+                constraintSize == currentConstraintsSize
+                mostDegree.clear()
+                mostDegree.append(v)
+        return mostDegree[0]
 
     """
          Optional TODO: Implement your own advanced Variable Heuristic
@@ -286,7 +309,7 @@ class BTSolver:
             return self.getMRV()
 
         if self.varHeuristics == "MRVwithTieBreaker":
-            return self.MRVwithTieBreaker()[0]
+            return self.MRVwithTieBreaker()
 
         if self.varHeuristics == "tournVar":
             return self.getTournVar()
