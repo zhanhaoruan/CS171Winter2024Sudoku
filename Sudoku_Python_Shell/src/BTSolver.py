@@ -49,7 +49,7 @@ class BTSolver:
         Return: a tuple of a dictionary and a bool. The dictionary contains all MODIFIED variables, mapped to their MODIFIED domain.
                 The bool is true if assignment is consistent, false otherwise.
     """
-    def forwardChecking ( self , v):
+    def forwardChecking ( self , v ):
         if not v:
             #get the modified constraints
             for constraint in self.network.getModifiedConstraints():
@@ -75,8 +75,8 @@ class BTSolver:
                 if neighborvar.getDomain().contains(value) and not neighborvar.isAssigned():
                     self.trail.push(neighborvar)
                     neighborvar.removeValueFromDomain(value)
-                    if neighborvar.getDomain().isEmpty():
-                        return ({}, False)
+                if neighborvar.getDomain().isEmpty():
+                    return ({}, False)
             return ({}, True)
 
     # =================================================================
@@ -115,8 +115,42 @@ class BTSolver:
 		        that were ASSIGNED during the whole NorvigCheck propagation, and mapped to the values that they were assigned.
                 The bool is true if assignment is consistent, false otherwise.
     """
-    def norvigCheck ( self ):
-        return ({}, False)
+    def norvigCheck ( self, v ):
+        if not v:
+            #get the modified constraints
+            for constraint in self.network.getModifiedConstraints():
+                #get the already assigned variables first
+                for var in constraint.vars:
+                    if var.isAssigned():
+                        value = var.getValues()[0]
+                        for neighborvar in self.network.getNeighborsOfVariable(var):
+                            if neighborvar.getDomain().contains(value):
+                                if neighborvar.isAssigned():
+                                    return ({}, False)
+                                self.trail.push(neighborvar)
+                                neighborvar.removeValueFromDomain(value)
+                            if neighborvar.getDomain().isEmpty():
+                                return ({}, False)
+                        
+
+            return ({}, True)
+        else:
+            value = v.getValues()[0]
+            assignedVars = []
+            for neighborvar in self.network.getNeighborsOfVariable(v):
+                if neighborvar.getDomain().contains(value) and not neighborvar.isAssigned():
+                    self.trail.push(neighborvar)
+                    neighborvar.removeValueFromDomain(value)
+                    if neighborvar.domain.size() == 1:
+                        assignedVars.append(neighborvar)
+                if neighborvar.getDomain().isEmpty():
+                    return ({}, False)
+            for var in assignedVars:
+                self.trail.push(var)
+                var.assignValue(var.domain.values[0])
+                if not self.norvigCheck(var)[1]:
+                    return ({}, False)
+            return ({}, True)
 
     """
          Optional TODO: Implement your own advanced Constraint Propagation
@@ -296,7 +330,7 @@ class BTSolver:
             return self.forwardChecking(v)[1]
 
         if self.cChecks == "norvigCheck":
-            return self.norvigCheck()[1]
+            return self.norvigCheck(v)[1]
 
         if self.cChecks == "tournCC":
             return self.getTournCC()
