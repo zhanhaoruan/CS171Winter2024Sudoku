@@ -90,8 +90,8 @@ def main ( ):
         }
 
         for f in listOfBoards:
-            if "z_expert_board" in str(f):
-                continue
+            # if "z_expert_board" in str(f):
+            #     continue
             print ( "Running board: " + str(f) )
             sudokudata = SudokuBoard.SudokuBoard( filepath=os.path.join( file, f ) )
 

@@ -158,8 +158,8 @@ class BTSolver:
          Completing the three tourn heuristic will automatically enter
          your program into a tournament.
      """
-    def getTournCC ( self ):
-        return False
+    def getTournCC ( self, v):
+        return self.norvigCheck(v)
 
     # ==================================================================
     # Variable Selectors
@@ -236,7 +236,7 @@ class BTSolver:
          your program into a tournament.
      """
     def getTournVar ( self ):
-        return None
+        return self.MRVwithTieBreaker()
 
     # ==================================================================
     # Value Selectors
@@ -276,7 +276,7 @@ class BTSolver:
          your program into a tournament.
      """
     def getTournVal ( self, v ):
-        return None
+        return self.getValuesLCVOrder(v)
 
     # ==================================================================
     # Engine Functions
@@ -333,7 +333,7 @@ class BTSolver:
             return self.norvigCheck(v)[1]
 
         if self.cChecks == "tournCC":
-            return self.getTournCC()
+            return self.getTournCC(v)[1]
 
         else:
             return self.assignmentsCheck()
